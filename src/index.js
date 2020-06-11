@@ -16,45 +16,9 @@ let notes = [
 
 
 
+const typeDefs = require("./schema");
 
-// Construct a schema, using GraphQL's schema language
-const typeDefs = gql`
-type Note {
-  id:ID!,
-  content:String!,
-  author:String!
-}
-
-type Query {
-    hello: String,
-    notes: [Note!]!,
-    note(id:ID!):Note!
-}
-type Mutation {
-	newNote(content:String!):Note!
-
-}
-
-`;
-
-// Provide resolver functions for our schema fields
-const resolvers = {
-  Query: {
-    hello: () => 'Hello world!',
-    notes:async () => await models.Note.find() ,
-    note:async (parent,args)=> {
-
-    return await models.Note.findById(args.id);
-    }
-  },
- Mutation:{
-	newNote:async (parent,args)=>{
-	return await models.Note.create({content:args.content,author:"Adam Scott"})
-		
-	}
-
- }
-};
+const resolvers = require('./resolvers');
 
 const app = express();
 
@@ -62,7 +26,7 @@ db.connect(DB_HOST);
 
 
 // Apollo Server setup
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer({ typeDefs, resolvers,context:()=> { return {models}; }});
 
 // Apply the Apollo GraphQL middleware and set the path to /api
 server.applyMiddleware({ app, path: '/api' });
