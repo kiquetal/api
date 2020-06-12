@@ -6,15 +6,12 @@ require("dotenv").config();
 const db=require("./db");
 const models = require("./models");
 const jwt = require('jsonwebtoken');
+const depthLimit = require('graphql-depth-limit');
+const { createComplexityLimitRule } = require('graphql-validation-complexity');
 
 // Run the server on a port specified in our .env file or port 4000
 const port = process.env.PORT || 4000;
 const DB_HOST = process.env.DB_HOST;
-let notes = [
-	{ id:'1',content:'This is a note',author:'Scott'},
-	{ id:'2',content:'This is another note',author:'Scott2'},
-	{ id:'3',content:'oh hey look another notes',author:'Riley'}
-];
 
 
 
@@ -27,7 +24,7 @@ db.connect(DB_HOST);
 
 
 // Apollo Server setup
-const server = new ApolloServer({ typeDefs, resolvers,context:({ req })=>
+const server = new ApolloServer({ typeDefs, resolvers,validationRules:[depthLimit(5),createComplexityLimitRule(1000)] ,context:({ req })=>
 						{
 							const token = req.headers.authorization;
 							const user = getUser(token);
